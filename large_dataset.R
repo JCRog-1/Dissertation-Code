@@ -468,7 +468,7 @@ planar_dist_from_border_shape <- function(incorrectlabels){
   for (i in 1:length(incorrectlabels)){
     distances_1 <- c()
     for (j in 1:2000){
-      distances_1[j] <- norm(triangles[i]-x.y[j],type = '2')
+      distances_1[j] <- norm(triangles[i]-border[j],type = '2')
     }
     closest_distance[i] <- min(distances_1)
   }
