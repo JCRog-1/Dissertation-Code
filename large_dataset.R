@@ -3,7 +3,9 @@ library(plot3Drgl)
 library(abind)
 library(keras)
 library(parallel)
+library(tensr)
 
+#A function that takes an 2x3 matrix and applies a random similarity transformation
 rand_affine <- function(X){
   
   #random rotation in [0,2*pi)
@@ -20,13 +22,13 @@ rand_affine <- function(X){
   
   return(Y)
 }
-
+#Generate equilateral triangles
 equilateral_tri <- function(){
   H <- defh(2)
   new_tri <- rand_affine(H)
   return(new_tri)
 }
-
+#Generate isosceles triangles
 isos_tri <- function(){
   peak <- runif(2,min = -5,max = 5 )
   angle <- runif(1,min = 0,max = 2*pi)
@@ -48,13 +50,13 @@ isos_tri <- function(){
   
   return(new_tri)
 }
-
+#Generate scalene triangles
 scalene_tri <- function(){
   tri <- matrix(rnorm(6),2,3)
   new_tri <- rand_affine(tri)
   return(new_tri)
 }
-
+#Determines if a triangle is acute or obtuse 
 ao.identifier <- function(X){
   a <- norm(X[,1] - X[,2],type = '2')**2
   b <- norm(X[,1] - X[,3],type = '2')**2 
@@ -64,7 +66,7 @@ ao.identifier <- function(X){
   
   else{return(0)}
 }
-
+#Uses the above functions to generate N random triangles, by design 1/6 will be equilateral, 1/6 isosceles, 2/3 scalene
 triangle_function <- function(N){
   data <- array(NA,dim = c(3,2,N))
   ao.label <- matrix(NA,N,1)
@@ -100,15 +102,17 @@ triangle_function <- function(N){
   return(set)
 }
 
-
+#Ensures same triangles are generated every time its ran
+#Both overall training and testing set
 set.seed(1); triangle_data_train <- triangle_function(100000)
 set.seed(2); triangle_data_test <- triangle_function(3000)
 
-
+#We use these ahead to sample equally from acute and obtuse triangles
 triangle_data_acute <- triangle_data_train$triangles[,,which(triangle_data_train$ao == 1)]
 triangle_data_obtuse <- triangle_data_train$triangles[,,which(triangle_data_train$ao == 0)]
 
 #N must be even
+#Generate an N sample of acute and obtuse triangles from the data set
 sampling_ao <- function(N){
   k <- sample(min(dim(triangle_data_acute)[3],dim(triangle_data_obtuse)[3]))[1:(N/2)]
   acute_sample <- triangle_data_acute[,,k]
@@ -124,11 +128,13 @@ sampling_ao <- function(N){
   return(set)
 }
 
+#set up for generating a random sample of triangle shapes 
 triangle_data_equilateral <- triangle_data_train$triangles[,,which(triangle_data_train$shape == 0)]
 triangle_data_isosceles <- triangle_data_train$triangles[,,which(triangle_data_train$shape == 1)]
 triangle_data_scalene <- triangle_data_train$triangles[,,which(triangle_data_train$shape == 2)]
 
 #N must be divisible by 5
+#Generate an N sample of equilateral isosceles and scalene triangles
 sampling_eis <- function(N){
   k <- sample(min(dim(triangle_data_equilateral)[3],dim(triangle_data_isosceles)[3]))[1:(3*N/5)]
   equ_sample <- triangle_data_equilateral[,,k[1:(N/5)]]
@@ -177,6 +183,7 @@ for (i in 1:3000){
                                    cos(b_points[i,1])/(1 + sin(b_points[i,1])*cos(b_points[i,2])) ),1,2)
 }
 
+#A function to determine the Riemannian distance between a shape and the class boundary
 calc_dist_from_border_ao <- function(incorrectlabels) {
   triangles <- triangle_data_test$triangles[,,incorrectlabels]
   
@@ -192,6 +199,7 @@ calc_dist_from_border_ao <- function(incorrectlabels) {
 }
 calc_dist_from_border_ao(c(1,2,3))
 
+#The code hashtagged out below may need to be ran in order to reset something in the computer for mclapply
 # triangles <- triangle_data_test$triangles[,,c(1,2,3)]
 # closest_distance <- lapply(seq_along(c(1,2,3)), function(j) {
 #   distances <- apply(border_points_ao, MARGIN = 3, function(border) {
@@ -220,6 +228,7 @@ for (i in 1:3000){
                                          cos(iso_border_points[i,1])/(1 + sin(iso_border_points[i,1])*cos(iso_border_points[i,2])) ),1,2)
 }
 
+#A function to determine the Riemannian distance between a shape and the class boundary
 calc_dist_from_border_shape <- function(incorrectlabels) {
   triangles <- triangle_data_test$triangles[,,incorrectlabels]
   
@@ -235,6 +244,7 @@ calc_dist_from_border_shape <- function(incorrectlabels) {
 }
 calc_dist_from_border_shape(c(1,2,3))
 
+#The code hashtagged out below may need to be ran in order to reset something in the computer for mclapply
 # triangles <- triangle_data_test$triangles[,,c(1,2,3)]
 # closest_distance <- lapply(seq_along(c(1,2,3)), function(j) {
 #   distances <- apply(border_points_shape, MARGIN = 3, function(border) {
@@ -276,6 +286,8 @@ calc_dist_from_border_ao <- function(u.v){
   
   return(min(distances))
 }
+
+#Because of the separate metric on the hyperbolic plane Bookstein coordinates require their own distance functions
 calc_dist_from_border_shape <- function(u.v){
   distances <- matrix(NA,300)
   x1 <- seq(-1.499,0.499,length.out = 100)
@@ -296,6 +308,7 @@ calc_dist_from_border_shape <- function(u.v){
 
 #####
 #Kendall data----
+#kd.conversion turns the triangles in a triangle data set into a Nx2 matrix of Kendall spherical coordinates 
 kd.conversion <- function(data_set){
   
   #Kendall coordinates for the upper plane
@@ -325,9 +338,8 @@ kd.conversion <- function(data_set){
 kendall_input <- kd.conversion(data_set = triangle_data_train)
 kendall.test <- kd.conversion(data_set = triangle_data_test)
 
-plot(kendall.test$cart[,1]/(1-kendall.test$cart[,3]),kendall.test$cart[,2]/(1-kendall.test$cart[,3]))
-
 ####
+#The following code below is necessary for plotting graphs in the respective Kendall.Analysis and others, file
 #Border plotting data for ao ---- 
 theta_border <- rbind(matrix(seq(asin(0.5)+0.0001,pi/2,length.out = 1000),ncol = 1),matrix(seq(asin(0.5)+0.0001,pi/2,length.out = 1000),ncol = 1))
 phi_border1 <- rbind(matrix(acos(0.5/sin(theta_border[1:1000])),ncol = 1),matrix(-acos(0.5/sin(theta_border[1001:2000])),ncol = 1))
@@ -389,6 +401,7 @@ YY_border <- rbind(yy1,yy2,yy3,yy4,yy5,yy6)/(1-rbind(zz1,zz2,zz3,zz4,zz5,zz6))
 #####
 
 #Planar Data----
+#planar.conversion turns the triangles in a triangle data set into a Nx2 matrix of planar coordinates 
 planar.conversion <- function(data_set){
   tris <- data_set$triangles
   norm.side.lengths <- matrix(NA,dim(tris)[3],3)
@@ -410,6 +423,7 @@ planar.conversion <- function(data_set){
 planar_input <- planar.conversion(data_set = triangle_data_train)
 planar.test <- planar.conversion(data_set = triangle_data_test)
 
+#The following are necessary to be ran in order to generate graphs for the planar coordinates
 #Border data for AO
 x <- seq(0,1,length.out = 10000)
 y <- sqrt(1-x**2)
@@ -417,7 +431,7 @@ x.y <- cbind(x,y)
 
 planar_dist_from_border_ao <- function(incorrectlabels){
   triangles <- planar.test$planar[incorrectlabels,]
-  closest_distance <- abs(apply(triangles,MARGIN = 1,FUN = function(x) (norm(x,type = '2')^2)) - 1)
+  closest_distance <- abs(apply(triangles,MARGIN = 1,FUN = function(x) (norm(x,type = '2')))
   return(closest_distance)
 }
 
@@ -444,8 +458,7 @@ lines(rep(1,100),x,lwd = '2')
 #####
 
 #QR decomposition----
-library(tensr)
-library(keras)
+#LQ.conversion turns the triangles in a triangle data set into a Nx2 matrix of bookstein coordinates 
 LQ.conversion <- function(data_set){
   tris <- data_set$triangles
   
