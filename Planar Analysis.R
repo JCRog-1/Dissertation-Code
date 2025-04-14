@@ -2,7 +2,7 @@ library(keras)
 library(shapes)
 library(latex2exp)
 
-#This file should be run in tandem with large_dataset.R,
+#This file should be run in tandem with large_dataset.R, there are functions required to be in the global environment in order for this file to run
 
 #Investigation 1: Acute or Obtuse ----
 dir.create("/Users/jackrogers/Documents/Year 4/Images for Dissertation/planar AO", recursive = TRUE)
