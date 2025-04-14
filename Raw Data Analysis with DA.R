@@ -6,7 +6,7 @@ library(tensorflow)
 #This file should be run in tandem with large_dataset.R, there are functions required to be in the global environment in order for this file to run
 #Investigation 1: Acute or Obtuse ----
 dir.create("/Users/jackrogers/Documents/Year 4/Images for Dissertation/RawDA AO", recursive = TRUE)
-
+#A function that runs a single layer NN returns the weights, loss, accuracy, indexes of correctly and incorrectly identified points in the test set and the distances of each point from the border
 NN_rawda_1_hidden_layer_ao <- function(k,epoch,batch,samp,N){
   
   data_aug <- t(apply(samp$triangles,MARGIN = 3,FUN = function(x) rand_affine(t(x))))
@@ -101,7 +101,7 @@ rawda_1_hidden_layer_ao <- list(result.rawda.N10.k4, result.rawda.N50.k4,result.
 saveRDS(rawda_1_hidden_layer_ao,file = 'rawda_1_hidden_layer_ao')
 
 #Multi Hidden layer 
-
+#A function that runs a two layer NN returns the weights, loss, accuracy, indexes of correctly and incorrectly identified points in the test set and the distances of each point from the border
 NN_rawda_multi_hidden_layer_ao <- function(k,epoch,batch,samp,N){
   
   data_aug <- t(apply(samp$triangles,MARGIN = 3,FUN = function(x) rand_affine(t(x))))
@@ -199,7 +199,7 @@ saveRDS(rawda_multi_hidden_layer_ao,file = 'rawda_multi_hidden_layer_ao')
 #Investigation 2 - Shape -----
 
 dir.create("/Users/jackrogers/Documents/Year 4/Images for Dissertation/RawDA Shape", recursive = TRUE)
-
+#A function that runs a single layer NN returns the weights, loss, accuracy, indexes of correctly and incorrectly identified points in the test set and the distances of each point from the border
 NN_rawda_1_hidden_layer_shape <- function(k,epoch,batch,samp,N){
   
   data_aug <- t(apply(samp$triangles,MARGIN = 3,FUN = function(x) rand_affine(t(x))))
@@ -291,7 +291,7 @@ rawda_1_hidden_layer_shape <- list(result.rawda.M10.k4, result.rawda.M50.k4,resu
 saveRDS(rawda_1_hidden_layer_shape,file = 'rawda_1_hidden_layer_shape')
 
 #Multi Hidden layer 
-
+#A function that runs a two layer NN returns the weights, loss, accuracy, indexes of correctly and incorrectly identified points in the test set and the distances of each point from the border
 NN_rawda_multi_hidden_layer_shape <- function(k,epoch,batch,samp,N){
   
   data_aug <- t(apply(samp$triangles,MARGIN = 3,FUN = function(x) rand_affine(t(x))))
