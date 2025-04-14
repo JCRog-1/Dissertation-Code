@@ -3,12 +3,8 @@ library(shapes)
 library(latex2exp)
 library(tensorflow)
 
-#This file should be run in tandem with large_dataset.R
+#This file should be run in tandem with large_dataset.R, there are functions required to be in the global environment in order for this file to run
 #Investigation 1: Acute or Obtuse ----
-#Neural Network 1 - 1 hidden layer - 100 pieces of data
-#NN_1_hidden_layer computes runs a 1 hidden layer neural network with 'k' hidden neurons  
-# on N pieces of training data. We can also decide the batch size and number of epochs to use
-
 dir.create("/Users/jackrogers/Documents/Year 4/Images for Dissertation/Raw AO", recursive = TRUE)
 
 NN_raw_1_hidden_layer_ao <- function(k,epoch,batch,samp,N){
