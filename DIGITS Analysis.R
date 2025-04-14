@@ -1,3 +1,4 @@
+#Load in data set and respective libraries 
 numbers <- read.csv('dataset_32_pendigits.csv')
 library(shapes)
 library(keras)
@@ -6,11 +7,15 @@ library(abind)
 library(reticulate)
 library(tensr)
 
-
+#Rearrange the columns of the data set containing the landmarks into 8x2 configurations 
 digits <- array_reshape(as.matrix(numbers)[,2:17],dim = c(10992,8,2),order = 'C') #Extract landmars of numbers
+
+#Create new list of the digits and associated labels 
 data <- list(nums = digits,labels = numbers$X.class.) #Form list of landmarks and associated labels 
 
-#Initialise the training data 
+#Initialise the training data
+
+#rand_affine_digit applies a random transformation to a digit
 rand_affine_digit <- function(X){
   
   #random rotation in [0,2*pi)
@@ -28,14 +33,17 @@ rand_affine_digit <- function(X){
   return(t(Y))
 }
 
+#Split the data into training and testing data and format appropriately 
 data.train.start <- list(nums = data$nums[1:9000,,],labels = data$labels[1:9000])
 new_data.train <- array(NA,dim = c(8,2,length(data.train.start$labels)))
 for (i in 1:length(data.train.start$labels)){
   new_data.train[,,i] <- data.train.start$nums[i,,]
 }
 
+#Final trainining data 
 data.train <- list(nums = new_data.train,labels = data.train.start$labels)
 
+#Format training data  
 data.test.start <- list(nums = data$nums[9001:10992,,],labels = data$labels[9001:10992])
 
 new_data.test <- array(NA,dim = c(8,2,length(data.test.start$labels)))
@@ -43,12 +51,15 @@ for (i in 1:length(data.test.start$labels)){
   new_data.test[,,i] <- data.test.start$nums[i,,]
 }
 
+#create augmented test sets 
 augmented_test_data1 <- array_reshape(apply(data.test.start$nums,MARGIN = 1,FUN = function(x) rand_affine_digit(t(x))),dim = c(8,2,1992),order = 'F')
 augmented_test_data2 <- array_reshape(apply(data.test.start$nums,MARGIN = 1,FUN = function(x) rand_affine_digit(t(x))),dim = c(8,2,1992),order = 'F')
 
+#Final testing set with augmented data included                            
 data.test <- list(nums = abind(new_data.test,augmented_test_data1,augmented_test_data2), 
                   labels = rbind(as.matrix(data.test.start$labels),as.matrix(data.test.start$labels),as.matrix(data.test.start$labels)))
 
+#subset the training data based on digit label                                          
 zeros <- data.train$nums[,,which(data.train$labels == 0)]
 ones <- data.train$nums[,,which(data.train$labels == 1)]
 twos <- data.train$nums[,,which(data.train$labels == 2)]
@@ -60,9 +71,10 @@ sevens <- data.train$nums[,,which(data.train$labels == 7)]
 eights <- data.train$nums[,,which(data.train$labels == 8)]
 nines <- data.train$nums[,,which(data.train$labels == 9)]
 
+#Alist of the sorted numbers                                             
 sorted_numbers <- list('0' = zeros,'1' = ones,'2' = twos, '3' = threes, '4' = fours, '5' = fives, '6' = sixes, '7' = sevens, '8' = eights, '9' = nines)
 #####
-#Template Numbers ----
+#Template Numbers (no longer used throughout the rest of the code or analysis) ----
 zero <- matrix(c(1.47,1-1/sqrt(2),1-1/sqrt(2),1,2,2+1/sqrt(2),2+1/sqrt(2),1.53,
                  1+2/sqrt(2),1+1/sqrt(2),1/sqrt(2),0,0,1/sqrt(2),1+1/sqrt(2),1+2/sqrt(2)),8,2)
 
@@ -94,8 +106,9 @@ nine <- matrix(c(1-1/sqrt(2),1,1,1,1-1/sqrt(2),1-2/sqrt(2),1-1/sqrt(2),0.95,
                  1-1/sqrt(2),1,2,3,3+1/sqrt(2),3,3-1/sqrt(2),3-1/sqrt(2)),8,2)
 
 templates <- abind(zero,one,two,three,four,five,six,seven,eight,nine,rev.along = 3)
-#####
+#####                                            
 #Population means----
+#Calculate the Frechet means of each set of digit data                                             
 mean_0 <- frechet(data.test$nums[,,which(data.test$labels == 0)],mean = 'intrinsic')$mshape
 mean_1 <- frechet(data.test$nums[,,which(data.test$labels == 1)],mean = 'intrinsic')$mshape
 mean_2 <- frechet(data.test$nums[,,which(data.test$labels == 2)],mean = 'intrinsic')$mshape
@@ -109,8 +122,9 @@ mean_9 <- frechet(data.test$nums[,,which(data.test$labels == 9)],mean = 'intrins
 means <- abind(mean_0,mean_1,mean_2,mean_3,mean_4,mean_5,mean_6,mean_7,mean_8,mean_9,rev.along = 3)
 saveRDS(means,file = 'mean_digit')
 means <- readRDS('mean_digit')
-#####
+#####                                    
 #Sample of digits----
+#Create a sample size of size N in which all digit classes are represented equally                                             
 sample_digits <- function(N){
   set <- list(nums = array(NA,dim = c(8,2,N)), labels = matrix(NA,N))
   for (i in 0:9){
@@ -121,6 +135,7 @@ sample_digits <- function(N){
   return(set)
 }
 
+#Ensures same training data is generated each time                                             
 set.seed(2500);D10 <- sample_digits(10)
 set.seed(2501);D50 <- sample_digits(50)
 set.seed(2502);D100 <- sample_digits(100)
@@ -129,6 +144,7 @@ set.seed(2504);D1000 <- sample_digits(1000)
 set.seed(2505);D5000 <- sample_digits(5000)
 #####
 #LQ Decomposition on Digit Data ----
+#Converts digits into their respective LQ deomposition coordinates
 LQ.digit.conversion <- function(data_set){
   digits <- data_set$nums
   
@@ -143,11 +159,15 @@ LQ.digit.conversion <- function(data_set){
   
   return(set)
 }
+                     
+#Convert the training and test data into LQ coordinates                      
 LQ_input_digit <- LQ.digit.conversion(data_set = data.train)
 LQ.test.digit <- LQ.digit.conversion(data_set = data.test)
 
 dir.create("/Users/jackrogers/Documents/Year 4/Images for Dissertation/Digits LQ", recursive = TRUE)
 
+#Runs a single layer neural network with k neurons, it also outputs the means of the populations of incorrect and correct digits and also computes the distances between them and their 
+                                            #test population mean                     
 NN_LQ_1_hidden_layer_digits <- function(k,epoch,batch,samp,N){
   LQ_input_digit <- LQ.digit.conversion(samp)
   
@@ -158,7 +178,7 @@ NN_LQ_1_hidden_layer_digits <- function(k,epoch,batch,samp,N){
   testlabels <- LQ.test.digit$label
   
   network <- keras_model_sequential() %>%
-    layer_dense(units = k,activation = 'elu',input_shape = c(14)) %>%
+    layer_dense(units = k,activation = 'relu',input_shape = c(14)) %>%
     layer_dense(units = 10,activation = 'softmax')
   
   network %>% compile(
@@ -228,6 +248,7 @@ result.LQ.D100.k100 <- NN_LQ_1_hidden_layer_digits(k = 100,epoch = 30,batch = 10
 result.LQ.D1000.k100 <- NN_LQ_1_hidden_layer_digits(k = 100,epoch = 30,batch = 10,samp = D1000,N = 1000)
 result.LQ.D5000.k100 <- NN_LQ_1_hidden_layer_digits(k = 100,epoch = 30,batch = 10,samp = D5000,N = 5000)
 
+#A function to plot the population mean digits of the test data, and correctly and incorrectly identified digits                     
 generate_plots_LQ <- function(result,N,k){
   #pdf(file = paste("/Users/jackrogers/Documents/Year 4/Images for Dissertation/Digits LQ/single-",N,'-',k,'.pdf'))
   par(mfrow = c(3,10))
@@ -264,6 +285,7 @@ generate_plots_LQ <- function(result,N,k){
   #dev.off()
 }
 
+#Generate the plots for each neural network ran                     
 generate_plots_LQ(result.LQ.D10.k16,10,16)
 generate_plots_LQ(result.LQ.D100.k16,100,16)
 generate_plots_LQ(result.LQ.D1000.k16,1000,16)
@@ -280,7 +302,8 @@ saveRDS(LQ_1_hidden_layer_digit,file = 'LQ_1_hidden_layer_digit')
 
 #####
 #Raw Data Coordinates on Digit Data ----
-
+#Runs a single layer neural network with k neurons, it also outputs the means of the populations of incorrect and correct digits and also computes the distances between them and their 
+                                            #test population mean   
 NN_raw_1_hidden_layer_digits <- function(k,epoch,batch,samp,N){
   
   traindata <- (array_reshape(samp$nums, dim = c(N,16), order = 'F'))
@@ -358,7 +381,7 @@ result.raw.D1000.k100 <- NN_raw_1_hidden_layer_digits(k = 100,epoch = 30,batch =
 result.raw.D5000.k100 <- NN_raw_1_hidden_layer_digits(k = 100,epoch = 30,batch = 10,samp = D5000,N = 5000)
 
 dir.create("/Users/jackrogers/Documents/Year 4/Images for Dissertation/Digits Raw", recursive = TRUE)
-
+#A function to plot the population mean digits of the test data, and correctly and incorrectly identified digits 
 generate_plots_raw <- function(result,N,k){
   pdf(file = paste("/Users/jackrogers/Documents/Year 4/Images for Dissertation/Digits Raw/single-",N,'-',k,'.pdf'))
   par(mfrow = c(3,3))
@@ -394,6 +417,8 @@ generate_plots_raw <- function(result,N,k){
   }
   dev.off()
 }
+
+#Generate the plots for each neural network ran                      
 generate_plots_raw(result.raw.D10.k16,10,16)
 generate_plots_raw(result.raw.D100.k16,100,16)
 generate_plots_raw(result.raw.D1000.k16,1000,16)
@@ -408,7 +433,8 @@ raw_1_hidden_layer_digit <- list(result.raw.D10.k16,result.raw.D100.k16,result.r
 saveRDS(raw_1_hidden_layer_digit,file = 'raw_1_hidden_layer_digit')
 #####
 #Raw Data Coordinates on Digit Data with DA----
-
+#Runs a single layer neural network with k neurons, it also outputs the means of the populations of incorrect and correct digits and also computes the distances between them and their 
+                                            #test population mean   
 NN_rawDA_1_hidden_layer_digits <- function(k,epoch,batch,samp,N){
   
   augmented_train_data1 <- array_reshape(apply(samp$nums,MARGIN = 3,FUN = function(x) rand_affine_digit(t(x))),dim = c(8,2,length(samp$labels)),order = 'F')
@@ -495,7 +521,7 @@ saveRDS(rawDA_1_hidden_layer_digit,file = 'rawDA_1_hidden_layer_digit')
 
 
 dir.create("/Users/jackrogers/Documents/Year 4/Images for Dissertation/Digits Raw DA", recursive = TRUE)
-
+#A function to plot the population mean digits of the test data, and correctly and incorrectly identified digits 
 generate_plots_rawDA <- function(result,N,k){
   pdf(file = paste("/Users/jackrogers/Documents/Year 4/Images for Dissertation/Digits Raw DA/single-",N,'-',k,'.pdf'))
   par(mfrow = c(3,3))
@@ -531,6 +557,8 @@ generate_plots_rawDA <- function(result,N,k){
   }
   dev.off()
 }
+
+#Generate the plots for each neural network ran                                                 
 generate_plots_rawDA(result.rawDA.D10.k16,10,16)
 generate_plots_rawDA(result.rawDA.D100.k16,100,16)
 generate_plots_rawDA(result.rawDA.D1000.k16,1000,16)
