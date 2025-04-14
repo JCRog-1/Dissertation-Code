@@ -3,9 +3,10 @@ library(shapes)
 library(latex2exp)
 library(ggplot2)
 
-#This file should be run in tandem with large_dataset.R
+#This file should be run in tandem with large_dataset.R, there are related functions which need to be run in their first 
 
 #Samples for AO investigation
+#Convert samples to bookstein coordinates 
 N10 <- bk.conversion(n10)
 N50 <- bk.conversion(n50)
 N100 <- bk.conversion(n100)
@@ -13,7 +14,7 @@ N500 <- bk.conversion(n500)
 N1000 <- bk.conversion(n1000)
 N10000 <- bk.conversion(n10000)
 
-#Samples for Shape investigation
+#Convert samples to bookstein coordinates 
 M10 <- bk.conversion(m10)
 M50 <- bk.conversion(m50)
 M100 <- bk.conversion(m100)
@@ -26,6 +27,7 @@ M10000 <- bk.conversion(m10000)
 dir.create("/Users/jackrogers/Documents/Year 4/Images for Dissertation/Bookstein AO", recursive = TRUE)
 
 #Neural Network 1 - 1 hidden layer ao ----
+#A function that runs a one hidden layer NN returns the weights, loss, accuracy, indexes of correctly and incorrectly identified points in the test set and the distances of each point from the border 
 NN_bk_1_hidden_layer_ao <- function(k,epoch,batch,samp,N){
   bookstein_input <- samp
   
@@ -123,6 +125,7 @@ saveRDS(bk_1_hidden_layer_ao,file = 'bk_1_hidden_layer_ao')
 
 #####
 #Neural Network 2 - multiple hidden layers ao ----
+#A function that runs a two hidden layer NN returns the weights, loss, accuracy, indexes of correctly and incorrectly identified points in the test set and the distances of each point from the border                                 
 NN_bk_multi__hidden_layer_ao <- function(k,epoch,batch,samp,N){
   bookstein_input <- samp
   
@@ -226,6 +229,7 @@ dir.create("/Users/jackrogers/Documents/Year 4/Images for Dissertation/Bookstein
 
 #####
 #Neural Network 1 - 1 hidden layer shape ----
+#A function that runs a single layer NN returns the weights, loss, accuracy, indexes of correctly and incorrectly identified points in the test set and the distances of each point from the border                                
 NN_1_hidden_layer_shape <- function(k,epoch,batch,samp,N){
   bookstein_input <- samp
   
@@ -328,6 +332,7 @@ saveRDS(bk_1_hidden_layer_shape,file = 'bk_1_hidden_layer_shape')
 
 #####
 #Neural Network 2 - multiple hidden layers----
+#A function that runs a two hidden layer NN returns the weights, loss, accuracy, indexes of correctly and incorrectly identified points in the test set and the distances of each point from the border                                
 NN_multi_hidden_layer_shape <- function(k,epoch,batch,samp,N){
   bookstein_input <- samp
   
