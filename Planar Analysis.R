@@ -2,15 +2,11 @@ library(keras)
 library(shapes)
 library(latex2exp)
 
-#This file should be run in tandem with large_dataset.R
+#This file should be run in tandem with large_dataset.R,
 
 #Investigation 1: Acute or Obtuse ----
-#Neural Network 1 - 1 hidden layer - 100 pieces of data
-#NN_1_hidden_layer computes runs a 1 hidden layer neural network with 'k' hidden neurons  
-# on N pieces of training data. We can also decide the batch size and number of epochs to use
-
 dir.create("/Users/jackrogers/Documents/Year 4/Images for Dissertation/planar AO", recursive = TRUE)
-
+#A function that runs a single layer NN returns the weights, loss, accuracy, indexes of correctly and incorrectly identified points in the test set and the distances of each point from the border
 NN_planar_1_hidden_layer_ao <- function(k,epoch,batch,samp,N){
   planar_input <- planar.conversion(samp)
   
@@ -92,7 +88,7 @@ planar_1_hidden_layer_ao <- list(result.planar.N10.k4, result.planar.N50.k4,resu
 saveRDS(planar_1_hidden_layer_ao,file = 'planar_1_hidden_layer_ao')
 
 #Multi Hidden layer 
-
+#A function that runs a two layer NN returns the weights, loss, accuracy, indexes of correctly and incorrectly identified points in the test set and the distances of each point from the border
 NN_planar_multi_hidden_layer_ao <- function(k,epoch,batch,samp,N){
   planar_input <- planar.conversion(samp)
   
@@ -174,7 +170,7 @@ saveRDS(planar_multi_hidden_layer_ao,file = 'planar_multi_hidden_layer_ao')
 #Investigation 2 - Shape -----
 
 dir.create("/Users/jackrogers/Documents/Year 4/Images for Dissertation/planar Shape", recursive = TRUE)
-
+#A function that runs a single layer NN returns the weights, loss, accuracy, indexes of correctly and incorrectly identified points in the test set and the distances of each point from the border
 NN_planar_1_hidden_layer_shape <- function(k,epoch,batch,samp,N){
   planar_input <- planar.conversion(samp)
   
@@ -254,7 +250,7 @@ planar_1_hidden_layer_shape <- list(result.planar.M10.k4, result.planar.M50.k4,r
 saveRDS(planar_1_hidden_layer_shape,file = 'planar_1_hidden_layer_shape')
 
 #Multi Hidden layer 
-
+#A function that runs a two layer NN returns the weights, loss, accuracy, indexes of correctly and incorrectly identified points in the test set and the distances of each point from the border
 NN_planar_multi_hidden_layer_shape <- function(k,epoch,batch,samp,N){
   planar_input <- planar.conversion(samp)
   
