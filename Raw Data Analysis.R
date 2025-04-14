@@ -6,7 +6,7 @@ library(tensorflow)
 #This file should be run in tandem with large_dataset.R, there are functions required to be in the global environment in order for this file to run
 #Investigation 1: Acute or Obtuse ----
 dir.create("/Users/jackrogers/Documents/Year 4/Images for Dissertation/Raw AO", recursive = TRUE)
-
+#A function that runs a single layer NN returns the weights, loss, accuracy, indexes of correctly and incorrectly identified points in the test set and the distances of each point from the border
 NN_raw_1_hidden_layer_ao <- function(k,epoch,batch,samp,N){
   
   traindata <- t(array_reshape(samp$triangles, dim = c(6,N),order = 'F'))
@@ -99,7 +99,7 @@ raw_1_hidden_layer_ao <- list(result.raw.N10.k4, result.raw.N50.k4,result.raw.N1
 saveRDS(raw_1_hidden_layer_ao,file = 'raw_1_hidden_layer_ao')
 
 #Multi Hidden layer 
-
+#A function that runs a two layer NN returns the weights, loss, accuracy, indexes of correctly and incorrectly identified points in the test set and the distances of each point from the border
 NN_raw_multi_hidden_layer_ao <- function(k,epoch,batch,samp,N){
   
   traindata <- t(array_reshape(samp$triangles, dim = c(6,N),order = 'F'))
@@ -195,7 +195,7 @@ saveRDS(raw_multi_hidden_layer_ao,file = 'raw_multi_hidden_layer_ao')
 #Investigation 2 - Shape -----
 
 dir.create("/Users/jackrogers/Documents/Year 4/Images for Dissertation/Raw Shape", recursive = TRUE)
-
+#A function that runs a single layer NN returns the weights, loss, accuracy, indexes of correctly and incorrectly identified points in the test set and the distances of each point from the border
 NN_raw_1_hidden_layer_shape <- function(k,epoch,batch,samp,N){
   
   traindata <- t(array_reshape(samp$triangles, dim = c(6,N),order = 'F'))
@@ -285,7 +285,7 @@ raw_1_hidden_layer_shape <- list(result.raw.M10.k4, result.raw.M50.k4,result.raw
 saveRDS(raw_1_hidden_layer_shape,file = 'raw_1_hidden_layer_shape')
 
 #Multi Hidden layer 
-
+#A function that runs a two layer NN returns the weights, loss, accuracy, indexes of correctly and incorrectly identified points in the test set and the distances of each point from the border
 NN_raw_multi_hidden_layer_shape <- function(k,epoch,batch,samp,N){
   
   traindata <- t(array_reshape(samp$triangles, dim = c(6,N),order = 'F'))
@@ -296,6 +296,7 @@ NN_raw_multi_hidden_layer_shape <- function(k,epoch,batch,samp,N){
   
   network <- keras_model_sequential() %>%
     layer_dense(units = k,activation = 'relu',input_shape = c(6)) %>%
+    layer_dense(units = k,activation = 'relu') %>%
     layer_dense(units = 3,activation = 'softmax')
   
   network %>% compile(
